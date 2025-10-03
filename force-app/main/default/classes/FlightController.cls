@@ -19,15 +19,22 @@ public with sharing class FlightController {
         
 
         // Retrieve airports
-        List<Airport__c> airports= FlightController.getAirportData(departureIataCode, arrivalIataCode);
+        List<Airport__c> airports = FlightController.getAirportData(departureIataCode, arrivalIataCode);
 
-        // Calculate distance
-        if(airports.size() == 2){
-            departureLatitude = decimal.valueOf(airports[0].Latitude__c);
-            departureLongitude = decimal.valueOf(airports[0].Longitude__c);
-            
-            arrivalLatitude = decimal.valueOf(airports[1].Latitude__c);
-            arrivalLongitude = decimal.valueOf(airports[1].Longitude__c);
+        // We need to ensure we have both airports to calculate the distance.
+        if (airports.size() != 2) {
+            throw new AuraHandledException('Could not find airport information for one or both IATA codes provided.');
+        }
+
+        // The SOQL query doesn't guarantee order, so we must check which airport is which.
+        for (Airport__c airport : airports) {
+            if (airport.IATA_Code__c.equalsIgnoreCase(departureIataCode)) {
+                departureLatitude = airport.Latitude__c;
+                departureLongitude = airport.Longitude__c;
+            } else if (airport.IATA_Code__c.equalsIgnoreCase(arrivalIataCode)) {
+                arrivalLatitude = airport.Latitude__c;
+                arrivalLongitude = airport.Longitude__c;
+            }
         }
 
         Decimal calculatedFlightDistance = FlightController.getFlightDistance(departureLatitude, departureLongitude, arrivalLatitude, arrivalLongitude);
@@ -41,7 +48,7 @@ public with sharing class FlightController {
         try {
             insert flight;
         } catch (DmlException e) {
-            throw new DmlException('Failed to save the flight record.', e);
+            throw new AuraHandledException('An error occurred while saving the flight: ' + e.getMessage());
         }
 
         return flight;
@@ -53,7 +60,7 @@ public with sharing class FlightController {
         }
 
         // Retrieve airports
-        List<Airport__c> airports = [SELECT Id, Name, Latitude__c, Longitude__c FROM Airport__c WHERE IATA_Code__c IN :new List<String>{departure, arrival}];
+        List<Airport__c> airports = [SELECT Id, Name, IATA_Code__c, Latitude__c, Longitude__c FROM Airport__c WHERE IATA_Code__c IN :new List<String>{departure, arrival}];
 
         return airports;
     }

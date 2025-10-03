@@ -2,8 +2,24 @@
     <template if:false={flightSaved}>
         <lightning-card title="Flight Creator" class="slds-theme_shade">
             <div class="slds-m-around_medium">
-                <lightning-input class="slds-m-bottom_small" label="Departure Airport IATA Code" value={departureIataCode} onchange={handleDepartureChange}></lightning-input>
-                <lightning-input class="slds-m-bottom_small" label="Arrival Airport IATA Code" value={arrivalIataCode} onchange={handleArrivalChange}></lightning-input>
+                <lightning-input
+                    class="slds-m-bottom_small"
+                    label="Departure Airport IATA Code"
+                    value={departureIataCode}
+                    onchange={handleDepartureChange}
+                    required
+                    pattern="[A-Z]{3}"
+                    message-when-pattern-mismatch="Please enter a valid 3-letter IATA code in uppercase.">
+                </lightning-input>
+                <lightning-input
+                    class="slds-m-bottom_small"
+                    label="Arrival Airport IATA Code"
+                    value={arrivalIataCode}
+                    onchange={handleArrivalChange}
+                    required
+                    pattern="[A-Z]{3}"
+                    message-when-pattern-mismatch="Please enter a valid 3-letter IATA code in uppercase.">
+                </lightning-input>
                 <lightning-button variant="brand" label="Save Flight" onclick={saveFlight}></lightning-button>
             </div>
         </lightning-card>
