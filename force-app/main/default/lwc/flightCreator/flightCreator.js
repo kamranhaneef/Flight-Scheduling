@@ -20,17 +20,32 @@ export default class FlightCreator extends LightningElement {
         this.arrivalIataCode = event.target.value;
     }
 
+    validateFields() {
+        const allValid = [...this.template.querySelectorAll('lightning-input')]
+            .reduce((validSoFar, inputCmp) => {
+                inputCmp.reportValidity();
+                return validSoFar && inputCmp.checkValidity();
+            }, true);
+        return allValid;
+    }
+
     saveFlight() {
+        if (!this.validateFields()) {
+            this.showToast('Error', 'Please correct the errors on the form.', 'error');
+            return;
+        }
+
         saveFlight({ departureIataCode: this.departureIataCode, arrivalIataCode: this.arrivalIataCode })
             .then(result => {
-                this.flightDistance=Math.round(result.Flight_Distance__c);
-                this.departureLocation=result.Departure_IATA_Code__c;
-                this.arrivalLocation=result.Arrival_IATA_Code__c;
-                this.flightSaved=true;
+                this.flightDistance = Math.round(result.Flight_Distance__c);
+                this.departureLocation = result.Departure_IATA_Code__c;
+                this.arrivalLocation = result.Arrival_IATA_Code__c;
+                this.flightSaved = true;
                 this.showToast('Success :)', 'Your flight has been created successfully.', 'success');
             })
             .catch(error => {
-                this.showToast('Error :(', JSON.stringify(error), 'error');
+                const errorMessage = error.body ? error.body.message : JSON.stringify(error);
+                this.showToast('Error :(', errorMessage, 'error');
             });
     }
 
